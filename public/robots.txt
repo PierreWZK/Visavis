@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /voitures.json
+Disallow: /jeu/aveugle
+Disallow: /jeu/devine
+
+Sitemap: https://visavis.projectp.fr/sitemap.xml

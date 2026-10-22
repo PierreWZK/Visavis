@@ -2,6 +2,9 @@
 {% import 'site/_macros.html.twig' as m %}
 
 {% block title %}{{ versions|length >= 2 ? versions|map(v => v.model ~ ' ' ~ v.name)|join(' vs ') ~ ' · ' }}Vis-à-vis{% endblock %}
+{# Une comparaison par combinaison de voitures : à partager, pas à indexer (les fiches, elles, le sont) #}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
+{% block canonical %}{{ url('app_compare', {v: ids|join(',')}) }}{% endblock %}
 {% block description %}{{ versions|length >= 2 ? 'Comparaison ligne par ligne : prix, puissance, consommation, coffre et émissions, le meilleur de chaque ligne en évidence.' : parent() }}{% endblock %}
 
 {% block body %}

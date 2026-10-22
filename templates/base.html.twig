@@ -12,11 +12,18 @@
         <meta property="og:site_name" content="Vis-à-vis">
         <meta property="og:title" content="{{ block('title') }}">
         <meta property="og:description" content="{{ block('description') }}">
-        <meta property="og:url" content="{{ app.request.uri }}">
-        <meta name="twitter:card" content="summary">
-        <link rel="canonical" href="{{ app.request.uri }}">
+        {# Adresse de référence : la page sans ses filtres (?q=, ?page=…), pour ne pas multiplier les doublons #}
+        {% set canonical = block('canonical') is defined and block('canonical')|trim ? block('canonical')|trim : (app.current_route ? url(app.current_route, app.current_route_parameters) : app.request.uri) %}
+        <meta property="og:url" content="{{ canonical }}">
+        <link rel="canonical" href="{{ canonical }}">
+        <meta property="og:image" content="{{ absolute_url('/og.png') }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Vis-à-vis · deux voitures face à face, ligne par ligne">
+        <meta name="twitter:card" content="summary_large_image">
+        {% block robots %}{% endblock %}
         {% block meta %}{% endblock %}
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%231a2039%22/><path d=%22M7 9l5 14 4-10%22 fill=%22none%22 stroke=%22%23f9a3c0%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M25 9l-5 14-4-10%22 fill=%22none%22 stroke=%22%23f9a3c0%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap">
