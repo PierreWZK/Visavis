@@ -15,7 +15,7 @@ final class AdemeImporter
 {
     public const string URL = 'https://data.ademe.fr/data-fair/api/v1/datasets/ademe-car-labelling/lines?size=1000';
 
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly EntityManagerInterface $em, private readonly ImageFinder $images)
     {
     }
 
@@ -112,6 +112,24 @@ final class AdemeImporter
         $this->em->getConnection()->executeStatement('DELETE FROM brand WHERE id NOT IN (SELECT DISTINCT brand_id FROM car_model)');
 
         return ['created' => $created, 'updated' => $updated, 'removed' => \count($existing), 'ignored' => $ignored];
+    }
+
+    /**
+     * Une photo pour chaque modèle qui n'en a jamais cherché (démonstration comprise). Une recherche par modèle, une seule fois.
+     *
+     * @return array{found: int, missing: int}
+     */
+    public function findImages(): array
+    {
+        $found = $missing = 0;
+        foreach ($this->em->getRepository(Model::class)->findBy(['imageUrl' => null]) as $model) {
+            $image = $this->images->find($model->getBrand()->getName(), $model->getName());
+            $image ? ++$found : ++$missing;
+            $model->setImageUrl($image['url'] ?? '')->setImagePage($image['page'] ?? null)->setImageCredit($image['credit'] ?? null);
+            $this->em->flush();
+        }
+
+        return ['found' => $found, 'missing' => $missing];
     }
 
     /**

@@ -36,6 +36,19 @@ class Model
     #[Assert\Range(min: 1, max: 9)]
     private ?int $seats = null;
 
+    /**
+     * Photo trouvée sur Wikimedia Commons (vignette de 960 px). null : pas encore cherchée ; '' : cherchée, rien trouvé.
+     */
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $imageUrl = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $imagePage = null;
+
+    /** Auteur et licence, à afficher avec la photo */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageCredit = null;
+
     /** @var Collection<int, Version> */
     #[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'model', orphanRemoval: true)]
     private Collection $versions;
@@ -107,5 +120,47 @@ class Model
     public function getVersions(): Collection
     {
         return $this->versions;
+    }
+
+    public function getImageUrl(): ?string
+    {
+        return $this->imageUrl;
+    }
+
+    public function setImageUrl(?string $imageUrl): static
+    {
+        $this->imageUrl = $imageUrl;
+
+        return $this;
+    }
+
+    public function getImagePage(): ?string
+    {
+        return $this->imagePage;
+    }
+
+    public function setImagePage(?string $imagePage): static
+    {
+        $this->imagePage = $imagePage;
+
+        return $this;
+    }
+
+    public function getImageCredit(): ?string
+    {
+        return $this->imageCredit;
+    }
+
+    public function setImageCredit(?string $imageCredit): static
+    {
+        $this->imageCredit = $imageCredit;
+
+        return $this;
+    }
+
+    /** La photo, s'il y en a une */
+    public function hasImage(): bool
+    {
+        return (bool) $this->imageUrl;
     }
 }

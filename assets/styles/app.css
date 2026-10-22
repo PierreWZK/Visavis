@@ -472,6 +472,8 @@ h3 { font-size: var(--step-body); font-weight: 500; }
 .compare tbody tr { border-top: 1px solid var(--edge); }
 .compare tbody th { font-weight: 500; }
 .compare tbody th small { display: block; font-weight: 400; font-size: var(--step-small); color: var(--muted); }
+.compare-photo { margin: 0 0 14px; }
+.compare-photo img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--raised); }
 .compare-car { display: block; text-decoration: none; font-size: var(--step-lead); line-height: 1.2; letter-spacing: -0.02em; }
 .compare-car:hover { text-decoration: underline; }
 .compare-car .v-brand, .compare-car .v-name { display: block; font-size: var(--step-small); color: var(--muted); letter-spacing: 0; }
@@ -573,7 +575,7 @@ h3 { font-size: var(--step-body); font-weight: 500; }
 .blind-step { display: block; font-size: var(--step-small); color: var(--muted); }
 .blind-cars { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .blind-car {
-    width: 100%; min-height: 104px; padding: 16px;
+    width: 100%; min-height: 104px; padding: 16px; overflow: hidden;
     display: grid; align-content: start; gap: 2px; text-align: left;
     background: var(--raised); color: var(--ink);
     border: 0; border-radius: var(--radius);
@@ -583,7 +585,25 @@ h3 { font-size: var(--step-body); font-weight: 500; }
 .blind-car:not(:disabled):hover { background: var(--edge); }
 .blind-car:not(:disabled):active { scale: 0.98; }
 .blind-car:disabled { cursor: default; }
+.blind-photo {
+    display: block; width: calc(100% + 32px); max-width: none; height: auto; aspect-ratio: 4 / 3; object-fit: cover;
+    margin: -16px -16px 12px; border-radius: var(--radius) var(--radius) 0 0;
+}
 .blind-name { font-weight: 500; line-height: 1.25; }
+.blind-version { font-size: var(--step-small); line-height: 1.3; }
+.game-credits { margin-top: 16px; font-size: 0.8125rem; color: var(--muted); }
+.game-credits a { color: inherit; }
+
+/* La photo à deviner : une vignette minuscule agrandie et floutée, rognée pour cacher les bords flous */
+.mystery { position: relative; margin: 20px 0 0; overflow: hidden; border-radius: var(--radius); background: var(--raised); aspect-ratio: 16 / 9; }
+.mystery img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    filter: blur(var(--blur, 16px)); scale: 1.12;
+    transition: filter 700ms var(--ease), scale 700ms var(--ease);
+}
+.mystery img.is-sharp { scale: 1; }
+.mystery-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; font-size: 0.8125rem; background: rgb(26 32 57 / 0.85); }
+.mystery-credit a { color: inherit; }
 .blind-meta { font-size: var(--step-small); color: var(--muted); }
 .blind-value { margin-top: 8px; font-size: var(--step-lead); letter-spacing: -0.01em; }
 .blind-value:empty { display: none; }

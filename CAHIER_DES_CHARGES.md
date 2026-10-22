@@ -37,6 +37,7 @@ Deux sources, dans le même catalogue :
 
 - Une valeur absente s'affiche « — » et n'est jamais classée.
 - La fiche et le catalogue disent d'où vient une version (« Données ADEME » ou « Catalogue de démonstration »).
+- **Photos** : une par modèle (pas par version), cherchée sur Wikimedia Commons à l'import, une seule fois par modèle, et créditée (auteur, licence). Affichée seulement dans la comparaison et dans les jeux.
 
 ### Comparaison
 
@@ -55,8 +56,8 @@ Deux sources, dans le même catalogue :
 
 Les mêmes pour tout le monde un jour donné (heure de Paris), une partie par jour, la série retenue sur l'appareil, un résultat à partager sans rien dévoiler. Les réponses restent sur le serveur jusqu'à ce qu'on joue.
 
-1. **À l'aveugle** : quatre voitures, seulement leur nom. Trois questions (« Laquelle coûte le moins cher ? », « La plus puissante ? »…). Chaque réponse dévoile les chiffres de la ligne. Score sur 3.
-2. **Devine la voiture** : un modèle à trouver en six essais. On part de sa carrosserie et de son énergie ; chaque erreur dévoile un indice de plus (prix, puissance, consommation, poids, CO₂, initiale de la marque). Chaque essai dit aussi si la marque est la bonne et si le prix et la puissance sont au-dessus ou en dessous.
+1. **À l'aveugle** : quatre voitures, leur photo, leur modèle et leur version (puissance retirée du nom). Trois questions (« Laquelle coûte le moins cher ? », « La plus puissante ? »…). Chaque réponse dévoile les chiffres de la ligne. Score sur 3.
+2. **Devine la voiture** : la photo du modèle, très floue, se précise à chaque erreur sans jamais devenir nette avant la fin (servie par le site, pour que son nom de fichier ne donne pas la réponse). Un modèle à trouver en six essais. On part de sa carrosserie et de son énergie ; chaque erreur dévoile un indice de plus (prix, puissance, consommation, poids, CO₂, initiale de la marque). Chaque essai dit aussi si la marque est la bonne et si le prix et la puissance sont au-dessus ou en dessous.
 
 ## 4. Cahier des charges technique
 

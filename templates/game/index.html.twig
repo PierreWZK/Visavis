@@ -25,7 +25,11 @@
             {% for car in cars %}
                 <li>
                     <button type="button" class="blind-car" data-choice="{{ loop.index0 }}">
+                        {% if car.model.hasImage %}
+                            <img class="blind-photo" src="{{ car.model.imageUrl|commons_width(330) }}" srcset="{{ car.model.imageUrl|commons_width(330) }} 330w, {{ car.model.imageUrl|commons_width(500) }} 500w" sizes="(max-width: 900px) 45vw, 22vw" alt="" width="330" height="248">
+                        {% endif %}
                         <span class="blind-name">{{ car.label }}</span>
+                        {% if car.version %}<span class="blind-version">{{ car.version }}</span>{% endif %}
                         <span class="blind-meta">{{ car.meta }}</span>
                         <span class="blind-value" data-value></span>
                     </button>
@@ -37,6 +41,12 @@
             <button type="button" class="btn" data-blind-next hidden>Question suivante</button>
             <a class="btn btn-quiet" data-blind-compare hidden>Comparer ces quatre</a>
         </div>
+        {% set credited = cars|filter(c => c.model.hasImage) %}
+        {% if credited %}
+            <p class="game-credits">Photos du modèle (Wikimedia Commons) :
+                {% for c in credited %}<a href="{{ c.model.imagePage }}" target="_blank" rel="noopener">{{ c.label }}</a> par {{ c.model.imageCredit }}{{ not loop.last ? ' · ' }}{% endfor %}.
+            </p>
+        {% endif %}
         <script type="application/json" data-questions>{{ questions|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
     </section>
 
@@ -45,7 +55,14 @@
             <h2 id="devine-titre">Devine la voiture</h2>
             <span class="streak" data-streak="devine" hidden></span>
         </header>
-        <p class="game-lede">Un modèle du catalogue à trouver en {{ tries }} essais. Chaque erreur dévoile un indice de plus.</p>
+        <p class="game-lede">Un modèle du catalogue à trouver en {{ tries }} essais. Chaque erreur dévoile un indice de plus{{ mysteryHasImage ? ' et rend la photo un peu plus nette' }}.</p>
+
+        {% if mysteryHasImage %}
+            <figure class="mystery" data-mystery>
+                <img src="{{ path('app_game_photo', {level: 0}) }}" alt="La voiture à deviner, floutée" width="960" height="540" data-mystery-photo data-src="{{ path('app_game_photo', {level: 0})|slice(0, -1) }}">
+                <figcaption class="mystery-credit" data-mystery-credit hidden></figcaption>
+            </figure>
+        {% endif %}
 
         <dl class="clues" data-clues aria-live="polite">
             <div><dt>{{ firstClue.label }}</dt><dd>{{ firstClue.value }}</dd></div>

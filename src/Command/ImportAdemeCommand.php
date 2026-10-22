@@ -25,6 +25,10 @@ final class ImportAdemeCommand extends Command
         $result = $this->importer->import($rows);
         $io->success(\sprintf('%d versions créées, %d mises à jour, %d retirées, %d lignes ignorées.', ...array_values($result)));
 
+        $io->writeln('Photos des nouveaux modèles (Wikimedia Commons)…');
+        $images = $this->importer->findImages();
+        $io->success(\sprintf('%d photos trouvées, %d modèles sans photo.', $images['found'], $images['missing']));
+
         return Command::SUCCESS;
     }
 }

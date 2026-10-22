@@ -46,4 +46,23 @@ final class DailyGamesTest extends TestCase
         $this->assertSame('down', $row['price'], 'la Sandero part de moins cher');
         $this->assertSame('up', $row['power'], 'et monte plus haut en puissance');
     }
+
+    public function testVersionNamesNeverGiveThePowerAway(): void
+    {
+        $this->assertSame('1.0 essence T-GDi Mhev iBVM6', DailyGames::hidePower('1.0 essence T-GDi 120 ch Mhev iBVM6'));
+        $this->assertSame('CRDi Htrac DCT-7', DailyGames::hidePower('CRDi 136 Htrac DCT-7'));
+        $this->assertSame('SW', DailyGames::hidePower('SW 181 ch+30 kW'));
+        $this->assertSame('', DailyGames::hidePower('110 ch'));
+        $this->assertSame('Nouvelle i10 1.0 ECO 4PL', DailyGames::hidePower('Nouvelle i10 1.0 ECO 4PL'), 'cylindrée et places gardées');
+    }
+
+    public function testPhotoStaysBlurryUntilTheEnd(): void
+    {
+        $this->assertCount(DailyGames::TRIES + 1, DailyGames::PHOTO_WIDTHS);
+        $this->assertLessThanOrEqual(120, max(\array_slice(DailyGames::PHOTO_WIDTHS, 0, DailyGames::TRIES)), 'jamais nette avant la fin');
+        $this->assertSame(
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Clio.jpg/40px-Clio.jpg',
+            \App\Catalog\ImageFinder::resize('https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Clio.jpg/960px-Clio.jpg', 40),
+        );
+    }
 }

@@ -27,6 +27,9 @@ final class DailyGames
     /** Devine la voiture : nombre d'essais */
     public const int TRIES = 6;
 
+    /** Largeur de la photo (px) selon le nombre d'erreurs : minuscule puis un peu moins ; nette (960) seulement à la fin */
+    public const array PHOTO_WIDTHS = [20, 20, 40, 40, 60, 120, 960];
+
     /** @var list<Version>|null */
     private ?array $all = null;
 
@@ -69,6 +72,14 @@ final class DailyGames
         throw new \RuntimeException('Catalogue trop petit pour le jeu à l\'aveugle.');
     }
 
+    /** Le nom de version sans sa puissance (« 1.0 TCe 90 ch » → « 1.0 TCe ») : sinon la question de puissance serait donnée */
+    public static function hidePower(string $name): string
+    {
+        $name = preg_replace(['/\d{2,4}\s*(ch|kw|cv)\b(\s*\+\s*\d{2,4}\s*(ch|kw)\b)?/i', '/(?<![\d.])\b\d{2,3}\b(?![.\d])/'], '', $name);
+
+        return trim(preg_replace('/\s+/', ' ', $name), " \t-·");
+    }
+
     /** L'indice de la version qui gagne ce critère, ou null en cas d'égalité */
     public static function winner(array $cars, string $key): ?int
     {
@@ -89,7 +100,10 @@ final class DailyGames
             $id = $version->getModel()->getId();
             $cheapest[$id] = min($cheapest[$id] ?? \PHP_INT_MAX, $version->getPrice());
         }
+        // Un modèle connu (70 000 € ou moins) et, si possible, avec sa photo à déflouter
         $models = array_values(array_filter($this->models(), fn (Model $m) => $cheapest[$m->getId()] <= 70000));
+        $withPhoto = array_values(array_filter($models, fn (Model $m) => $m->hasImage()));
+        $models = $withPhoto ?: $models;
 
         return $models[$this->random('mystery', $day)->getInt(0, \count($models) - 1)];
     }
