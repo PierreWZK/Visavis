@@ -1,0 +1,8 @@
+<footer class="site-footer">
+    <span>Vis-à-vis · Jour 09 du défi <a href="https://projectp.fr/">30 jours, 30 projets</a></span>
+    <span class="footer-links"><a href="{{ path('app_catalog') }}">Catalogue</a><a href="https://github.com/PierreWZK/Visavis" target="_blank" rel="noopener">Code sur GitHub ↗</a></span>
+    <span class="footer-end">Fait avec Symfony</span>
+    {% if credits is defined %}
+        <p class="credits">Photos via Wikimedia Commons : {% for c in credits %}{{ c.brand }} {{ c.model }} par {{ c.credit }}{{ not loop.last ? ' · ' }}{% endfor %}.</p>
+    {% endif %}
+</footer>

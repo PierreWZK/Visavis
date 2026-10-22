@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Vis-à-vis · Deux voitures face à face, sans parti pris{% endblock %}</title>
+        <meta name="description" content="{% block description %}Vis-à-vis aligne deux à quatre voitures caractéristique par caractéristique (prix, puissance, consommation, coffre, émissions) et met en évidence le meilleur de chaque ligne.{% endblock %}">
+        {# Aperçu du lien quand on le partage (Open Graph, Twitter) #}
+        <meta name="theme-color" content="#1a2039">
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="fr_FR">
+        <meta property="og:site_name" content="Vis-à-vis">
+        <meta property="og:title" content="{{ block('title') }}">
+        <meta property="og:description" content="{{ block('description') }}">
+        <meta property="og:url" content="{{ app.request.uri }}">
+        <meta name="twitter:card" content="summary">
+        <link rel="canonical" href="{{ app.request.uri }}">
+        {% block meta %}{% endblock %}
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%231a2039%22/><path d=%22M7 9l5 14 4-10%22 fill=%22none%22 stroke=%22%23f9a3c0%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M25 9l-5 14-4-10%22 fill=%22none%22 stroke=%22%23f9a3c0%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap">
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body>
+        {% block page %}
+            <header class="topbar">
+                <a href="{{ path('app_home') }}" class="wordmark" aria-label="Vis-à-vis, accueil">Vis-à-vis</a>
+                <nav class="topbar-links" aria-label="Navigation principale">
+                    <a href="{{ path('app_home') }}#principe">Le principe</a>
+                    <a href="{{ path('app_catalog') }}" {{ app.current_route == 'app_catalog' ? 'aria-current="page"' }}>Catalogue</a>
+                </nav>
+            </header>
+            <main class="sheet">
+                {% block body %}{% endblock %}
+            </main>
+            {{ include('_footer.html.twig') }}
+        {% endblock %}
+    </body>
+</html>

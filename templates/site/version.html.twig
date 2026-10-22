@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% import 'site/_macros.html.twig' as m %}
+
+{% block title %}{{ version }} · Vis-à-vis{% endblock %}
+{% block description %}{{ version }} ({{ version.year }}) : {{ m.num(version.price) }} €, {{ version.power }} ch, {{ version.energy.label|lower }}. Comparez-la à d'autres versions sur Vis-à-vis.{% endblock %}
+
+{% block body %}
+<p class="breadcrumb"><a href="{{ path('app_catalog') }}">Catalogue</a> · {{ version.model.brand.name }}</p>
+<div class="title-row title-row-split">
+    <div>
+        <h1 class="version-title">{{ m.version_title(version) }}</h1>
+        <p>{{ version.energy.label }} · {{ version.model.body.label }} · {{ version.model.seats }} places · {{ version.year }}</p>
+    </div>
+    <div class="title-actions">
+        {% set siblings = version.model.versions|filter(s => s.id != version.id) %}
+        {% if siblings is not empty %}
+            <a class="btn btn-quiet" href="{{ path('app_compare', {v: ([version] | merge(siblings|slice(0, 3)))|map(s => s.id)|join(',')}) }}">Comparer les versions de ce modèle</a>
+        {% endif %}
+        <a class="btn" href="{{ path('app_catalog', {v: version.id}) }}">Comparer cette version</a>
+    </div>
+</div>
+
+<dl class="specs">
+    <div><dt>Prix</dt><dd>{{ m.num(version.price) }} <span class="unit">€</span></dd></div>
+    <div><dt>Puissance</dt><dd>{{ m.num(version.power) }} <span class="unit">ch</span></dd></div>
+    <div><dt>Consommation</dt><dd>{{ m.num(version.consumption, 1) }} <span class="unit">{{ version.energy.consumptionUnit }}</span></dd></div>
+    <div><dt>Coffre</dt><dd>{{ m.num(version.trunk) }} <span class="unit">L</span></dd></div>
+    <div><dt>Émissions CO₂</dt><dd>{{ m.num(version.co2) }} <span class="unit">g/km</span></dd></div>
+</dl>
+
+{% if rivals %}
+    <section class="rivals" aria-labelledby="rivales-titre">
+        <h2 id="rivales-titre">Face à elle</h2>
+        <p class="rivals-lede">D'autres {{ version.model.body.label|lower }}s au prix le plus proche. Un clic, et les deux sont comparées.</p>
+        <ul class="rivals-list">
+            {% for r in rivals %}
+                <li>
+                    <a href="{{ path('app_compare', {v: version.id ~ ',' ~ r.id}) }}">
+                        <span class="rivals-name">{{ m.version_title(r) }}</span>
+                        <span class="rivals-meta">{{ r.energy.label }} · {{ m.num(r.power) }} ch</span>
+                        <span class="rivals-price">{{ m.num(r.price) }} €</span>
+                        <span class="rivals-diff">{{ r.price >= version.price ? '+' : '−' }}{{ m.num((r.price - version.price)|abs) }} €</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+{% import 'site/_macros.html.twig' as m %}
+
+{% block title %}Catalogue · Vis-à-vis{% endblock %}
+
+{% block body %}
+{% set selectedIds = selected|map(s => s.id) %}
+{% set filtered = filters.q or filters.energy or filters.budget or filters.body or filters.seats %}
+
+<div class="title-row">
+    <h1>Catalogue</h1>
+    <p>Cochez de deux à quatre versions, puis comparez-les ligne par ligne.</p>
+</div>
+
+<form class="toolbar" method="get" action="{{ path('app_catalog') }}" role="search" data-filters>
+    <label class="field field-q">
+        <span>Recherche</span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Marque, modèle, version">
+    </label>
+    <label class="field">
+        <span>Énergie</span>
+        <select name="energy">
+            <option value="">Toutes</option>
+            {% for e in energies %}
+                <option value="{{ e.value }}" {{ filters.energy == e ? 'selected' }}>{{ e.label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="field">
+        <span>Carrosserie</span>
+        <select name="body">
+            <option value="">Toutes</option>
+            {% for b in bodies %}
+                <option value="{{ b.value }}" {{ filters.body == b ? 'selected' }}>{{ b.label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="field">
+        <span>Places</span>
+        <select name="seats">
+            <option value="">Toutes</option>
+            {% for s in [4, 5, 7] %}
+                <option value="{{ s }}" {{ filters.seats == s ? 'selected' }}>{{ s }} et plus</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="field field-budget">
+        <span>Budget max</span>
+        <input type="number" name="budget" min="0" step="500" inputmode="numeric" value="{{ filters.budget }}" placeholder="Sans limite">
+    </label>
+    {# Garde la sélection en cours quand on change de filtre #}
+    <input type="hidden" name="v" value="{{ selectedIds|join(',') }}" data-selection>
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <button class="btn btn-quiet" type="submit" data-filters-submit>Filtrer</button>
+</form>
+
+<div class="list-head">
+    <p class="count">
+        {{ versions|length }} version{{ versions|length > 1 ? 's' }}
+        {% if filtered %}· <a href="{{ path('app_catalog', {v: selectedIds ? selectedIds|join(',') : null}) }}" data-keep-selection>Effacer les filtres</a>{% endif %}
+    </p>
+    <form method="get" action="{{ path('app_catalog') }}" class="sort" data-sort>
+        {% for key, value in {q: filters.q, energy: filters.energy.value ?? null, body: filters.body.value ?? null, seats: filters.seats, budget: filters.budget} %}
+            {% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
+        {% endfor %}
+        <input type="hidden" name="v" value="{{ selectedIds|join(',') }}" data-selection>
+        <label>Trier par
+            <select name="sort">
+                {% for key, label in {name: 'marque', price: 'prix croissant', power: 'puissance', trunk: 'coffre'} %}
+                    <option value="{{ key }}" {{ sort == key ? 'selected' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="btn btn-quiet" type="submit" data-filters-submit>Trier</button>
+    </form>
+</div>
+
+<form method="get" action="{{ path('app_compare') }}" data-compare-form>
+    {# La sélection masquée par les filtres reste dans le formulaire #}
+    {% set shownIds = versions|map(v => v.id) %}
+    {% for s in selected|filter(s => s.id not in shownIds) %}
+        <input type="hidden" name="ids[]" value="{{ s.id }}" data-label="{{ s }}">
+    {% endfor %}
+
+    {% if versions is empty %}
+        <div class="empty">
+            <p>Aucune version ne correspond à ces filtres.</p>
+            <a class="btn" href="{{ path('app_catalog', {v: selectedIds ? selectedIds|join(',') : null}) }}" data-keep-selection>Voir tout le catalogue</a>
+        </div>
+    {% else %}
+        <table class="catalog">
+            <thead>
+                <tr>
+                    <th scope="col"><span class="visually-hidden">Comparer</span></th>
+                    <th scope="col">Version</th>
+                    <th scope="col" class="num">Prix</th>
+                    <th scope="col" class="num">Puissance</th>
+                    <th scope="col" class="num">Consommation</th>
+                    <th scope="col" class="num">Coffre</th>
+                    <th scope="col" class="num">CO₂</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in versions %}
+                    <tr data-row>
+                        <td class="pick">
+                            <input type="checkbox" name="ids[]" value="{{ v.id }}" id="pick-{{ v.id }}" data-label="{{ v }}" {{ v.id in selectedIds ? 'checked' }}>
+                        </td>
+                        <td class="identity">
+                            <label for="pick-{{ v.id }}" class="identity-name">{{ m.version_title(v) }}</label>
+                            <span class="identity-meta">{{ v.energy.label }} · {{ v.model.body.label }} · {{ v.model.seats }} places · {{ v.year }} · <a href="{{ path('app_version', {id: v.id}) }}">Fiche</a></span>
+                        </td>
+                        <td class="num price">{{ m.num(v.price) }} <span class="unit">€</span></td>
+                        <td class="num">{{ m.num(v.power) }} <span class="unit">ch</span></td>
+                        <td class="num">{{ m.num(v.consumption, 1) }} <span class="unit">{{ v.energy.consumptionUnit }}</span></td>
+                        <td class="num">{{ m.num(v.trunk) }} <span class="unit">L</span></td>
+                        <td class="num">{{ m.num(v.co2) }} <span class="unit">g/km</span></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <div class="compare-bar">
+        <ul class="chips" data-chips aria-label="Votre sélection">
+            {% for s in selected %}<li>{{ s }}</li>{% endfor %}
+        </ul>
+        <span class="compare-count" data-compare-count>{{ selected|length }} / 4</span>
+        <button class="btn" type="submit" data-compare-submit {{ selected|length < 2 ? 'disabled' }}>Comparer</button>
+    </div>
+</form>
+{% endblock %}

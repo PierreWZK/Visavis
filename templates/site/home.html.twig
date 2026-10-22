@@ -1,0 +1,195 @@
+{% extends 'base.html.twig' %}
+{% import 'site/_macros.html.twig' as m %}
+
+{% block meta %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Vis-à-vis",
+  "url": "https://visavis.projectp.fr/",
+  "description": "Comparateur de voitures : deux à quatre versions alignées caractéristique par caractéristique, le meilleur de chaque ligne en évidence.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "fr",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "author": { "@type": "Person", "name": "PierreWZK", "url": "https://github.com/PierreWZK" },
+  "isPartOf": { "@type": "WebSite", "name": "ProjectP", "url": "https://projectp.fr/" }
+}
+</script>
+{% endblock %}
+
+{% block page %}
+<main class="home">
+    <div class="stage">
+        <div class="stage-text">
+            <nav class="home-nav" aria-label="Navigation principale">
+                <a href="#principe">Le principe</a>
+                <a href="{{ path('app_home') }}" class="wordmark" aria-label="Vis-à-vis, accueil">Vis-à-vis</a>
+                <a href="{{ path('app_catalog') }}">Catalogue</a>
+            </nav>
+
+            <section class="hero" data-stage-step="duel">
+                <h1 data-reveal>Deux voitures,<br> face à face</h1>
+                <p class="lead" data-reveal>
+                    Vis-à-vis aligne deux à quatre versions ligne par ligne, du prix au coffre,
+                    et montre le meilleur de chaque ligne. Pas de note globale : les chiffres, côte à côte.
+                </p>
+                <a class="btn" href="{{ path('app_catalog') }}" data-reveal>Choisir mes voitures</a>
+
+                {% if example %}
+                    <form class="picker" method="get" action="{{ path('app_compare') }}" data-picker data-reveal>
+                        <p>Essayez tout de suite avec deux voitures du catalogue&nbsp;:</p>
+                        {% for side in [0, 1] %}
+                            <label class="field">
+                                <span>{{ side == 0 ? 'À gauche' : 'À droite' }}</span>
+                                <select name="ids[]" data-side="{{ side }}">
+                                    {# cars est trié par marque : un groupe par marque #}
+                                    {% for c in cars %}
+                                        {% if loop.first or c.brand != cars[loop.index0 - 1].brand %}{% if not loop.first %}</optgroup>{% endif %}<optgroup label="{{ c.brand }}">{% endif %}
+                                        <option value="{{ c.id }}" {{ c.id == example[side].id ? 'selected' }}>{{ c.model }} {{ c.name }}</option>
+                                        {% if loop.last %}</optgroup>{% endif %}
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        {% endfor %}
+                        <button class="btn btn-quiet" type="submit">Comparer ces deux</button>
+                    </form>
+                {% endif %}
+            </section>
+
+            <section id="principe" class="steps" aria-labelledby="principe-titre">
+                <h2 id="principe-titre">En trois gestes</h2>
+                <div class="step" data-stage-step="filter">
+                    <p class="step-say">D'abord, filtrez le catalogue.</p>
+                    <p>Une marque, un modèle, puis l'énergie, le budget, la carrosserie et le nombre de places.</p>
+                </div>
+                <div class="step" data-stage-step="pick">
+                    <p class="step-say">Ensuite, cochez jusqu'à quatre versions.</p>
+                    <p>Mélangez les marques et les énergies : une citadine électrique contre un SUV hybride, pourquoi pas.</p>
+                </div>
+                <div class="step" data-stage-step="share">
+                    <p class="step-say">Enfin, partagez le lien.</p>
+                    <p>L'adresse de la page recrée la même comparaison. Envoyez-la telle quelle, à qui doit trancher avec vous.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="stage-fixed">
+            <div class="stage-panel">
+                {# Le duel en direct : rendu ici sans JavaScript, puis redessiné à chaque choix #}
+                <figure class="duel is-shown" data-ui data-stage="duel" aria-live="polite">
+                    {% if example %}
+                        <div class="duel-head" data-duel-head>
+                            {% for v in example %}
+                                <p><span class="duel-brand">{{ v.model.brand.name }}</span> {{ v.model.name }} <span class="duel-version">{{ v.name }}</span></p>
+                            {% endfor %}
+                        </div>
+                        <dl class="duel-rows" data-duel-rows>
+                            {% for row in exampleRows %}
+                                <div class="duel-row">
+                                    <dd class="{{ row.cells[0].best ? 'win' }}">{{ m.value(row.key, row.cells[0].value) }} <span class="unit">{{ row.cells[0].unit }}</span></dd>
+                                    <dt>{{ row.label }}</dt>
+                                    <dd class="{{ row.cells[1].best ? 'win' }}">{{ m.value(row.key, row.cells[1].value) }} <span class="unit">{{ row.cells[1].unit }}</span></dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+                    <figcaption class="panel-bar">
+                        <span>{{ count }} versions au catalogue</span>
+                        {% if example %}<a href="{{ path('app_compare', {v: example|map(e => e.id)|join(',')}) }}" data-duel-link>Ouvrir cette comparaison</a>{% endif %}
+                    </figcaption>
+                </figure>
+
+                {# Le catalogue en miniature, dans les trois états de « En trois gestes » #}
+                <figure class="mini" data-ui data-stage="filter pick share" aria-hidden="true">
+                    <div class="mini-filters">
+                        <span>Énergie <b>Hybride</b></span>
+                        <span>Budget max <b>35 000 €</b></span>
+                    </div>
+                    <ul class="mini-rows">
+                        {% for v in demo %}
+                            <li class="{{ loop.index <= 2 ? 'picked' }}">
+                                <span class="mini-check"></span>
+                                <span class="mini-name">{{ v.model.brand.name }} {{ v.model.name }} <span>{{ v.name }}</span></span>
+                                <span class="mini-price">{{ m.num(v.price) }} €</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="mini-bar">
+                        <span class="mini-count"><span class="when-pick">2 / 4 sélectionnées</span><span class="when-filter">0 / 4 sélectionnée</span></span>
+                        <span class="mini-btn">Comparer</span>
+                    </div>
+                    <div class="mini-share">
+                        <span class="mini-link">visavis.projectp.fr/comparer?v={{ demo|slice(0, 2)|map(v => v.id)|join(',') }}</span>
+                        <span class="mini-btn">Lien copié</span>
+                    </div>
+                    <figcaption class="panel-bar">
+                        <span>{{ demo|length }} hybrides à moins de 35 000 €</span>
+                        <span>Catalogue</span>
+                    </figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+
+    <section class="gallery" aria-labelledby="galerie-titre">
+        <h2 id="galerie-titre">Quatre voitures du catalogue</h2>
+        <ul class="gallery-list">
+            {% for photo in gallery %}
+                <li data-reveal>
+                    <a href="{{ path('app_catalog', {q: photo.model}) }}">
+                        <img src="{{ asset(photo.image) }}" alt="{{ photo.brand }} {{ photo.model }}" width="1400" height="1050" loading="lazy">
+                        <span class="gallery-name">{{ photo.brand }} {{ photo.model }}</span>
+                        <span class="gallery-meta">{{ photo.count }} version{{ photo.count > 1 ? 's' }}{% if photo.from %}, dès {{ m.num(photo.from) }} €{% endif %}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="sense" aria-labelledby="sens-titre">
+        <div class="sense-text">
+            <h2 id="sens-titre">Le sens de chaque ligne</h2>
+            <p>
+                Un prix gagne quand il est bas, une puissance quand elle est haute. Vis-à-vis applique ce sens
+                à chaque caractéristique, puis affiche l'écart de chaque voiture avec la meilleure, en valeur et en pourcentage.
+            </p>
+        </div>
+        <dl class="sense-list">
+            <div data-reveal><dt>Prix</dt><dd>le plus bas</dd></div>
+            <div data-reveal><dt>Puissance</dt><dd>la plus haute</dd></div>
+            <div data-reveal><dt>Consommation</dt><dd>la plus basse, à énergie égale</dd></div>
+            <div data-reveal><dt>Coffre</dt><dd>le plus grand</dd></div>
+            <div data-reveal><dt>Émissions de CO₂</dt><dd>les plus basses</dd></div>
+        </dl>
+    </section>
+
+    <section class="honest" aria-labelledby="honnete-titre">
+        <h2 id="honnete-titre">Ce que Vis&#8209;à&#8209;vis ne fait pas</h2>
+        <div class="honest-list">
+            <div data-reveal>
+                <h3>Pas de verdict</h3>
+                <p>Aucune note globale. C'est vous qui savez si le coffre compte plus que la puissance.</p>
+            </div>
+            <div data-reveal>
+                <h3>Pas de faux duel</h3>
+                <p>Un litre d'essence et un kilowattheure ne se comparent pas : la consommation se départage à énergie égale.</p>
+            </div>
+            <div data-reveal>
+                <h3>Pas de publicité</h3>
+                <p>Aucun constructeur mis en avant, aucune annonce. Le catalogue est un jeu de démonstration de {{ count }} versions.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="last" aria-labelledby="fin-titre">
+        <h2 id="fin-titre" class="visually-hidden">Commencer</h2>
+        <p>Prenez deux voitures qui vous tentent et regardez-les ligne par ligne.</p>
+        <a class="btn" href="{{ path('app_catalog') }}">Ouvrir le catalogue</a>
+    </section>
+</main>
+{{ include('_footer.html.twig', {credits: gallery}) }}
+<script type="application/json" id="cars">{{ cars|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+{% endblock %}

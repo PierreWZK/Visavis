@@ -1,0 +1,10 @@
+{# Une valeur chiffrée à la française : 25 000, 4,7 #}
+{% macro num(value, decimals = 0) %}{{ value|number_format(decimals, ',', ' ') }}{% endmacro %}
+
+{% macro value(key, value) %}{{ _self.num(value, key == 'consumption' ? 1 : 0) }}{% endmacro %}
+
+{% macro version_title(version) %}
+    <span class="v-brand">{{ version.model.brand.name }}</span>
+    <span class="v-model">{{ version.model.name }}</span>
+    <span class="v-name">{{ version.name }}</span>
+{% endmacro %}
