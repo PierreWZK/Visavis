@@ -26,6 +26,7 @@ Un comparateur de voitures neuves : on choisit deux à quatre versions et **Vis-
 - **Données** : environ 770 voitures neuves vendues en France, importées du jeu public **ADEME - Car Labelling** (prix, puissance, consommation, CO₂, poids, boîte, autonomie électrique), plus 51 versions de démonstration qui ajoutent le coffre et les places. Une valeur que la source ne donne pas s'affiche « — » et n'est jamais classée.
 - **Accueil** : un duel en direct (deux champs à suggestions, le duel se redessine), « En trois gestes » avec le catalogue en miniature, quatre modèles en photo, les jeux du jour.
 - **Catalogue** : recherche, filtres (énergie, carrosserie, boîte, budget) appliqués dès qu'on les change, tri (marque, prix, puissance, CO₂), 50 versions par page, sélection de 2 à 4 versions conservée d'une page et d'un filtre à l'autre.
+- **Photos** : une par modèle, trouvée sur Wikimedia Commons pendant l'import (173 modèles sur 174), créditée sous la comparaison et dans les jeux.
 - **Comparaison** : le meilleur de chaque ligne en rose, l'écart des autres en valeur et en %. Sur téléphone, une carte par caractéristique, chaque voiture nommée.
 - **Fiche** : les chiffres de la version, sa source, et « Face à elle », ses rivales de même carrosserie au prix le plus proche.
 - **Jeux du jour** (`/jeu`), les mêmes pour tout le monde, une partie par jour, score à partager :

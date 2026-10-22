@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Catalog\ImageFinder;
 use App\Entity\Model;
 use App\Entity\Version;
 use App\Game\DailyGames;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,8 +34,11 @@ final class GameController extends AbstractController
             'date' => $day,
             'cars' => array_map(fn (Version $v) => [
                 'label' => $v->getModel()->getBrand()->getName().' '.$v->getModel()->getName(),
+                'version' => DailyGames::hidePower($v->getName()),
                 'meta' => $v->getEnergy()->label().' · '.$v->getModel()->getBody()->label(),
+                'model' => $v->getModel(),
             ], $blind['cars']),
+            'mysteryHasImage' => $mystery->hasImage(),
             'questions' => array_map(fn (string $key) => DailyGames::QUESTIONS[$key][0], $blind['questions']),
             'firstClue' => DailyGames::clues($mystery, 0)[0],
             'tries' => DailyGames::TRIES,
@@ -89,8 +95,40 @@ final class GameController extends AbstractController
             'answer' => $over ? [
                 'label' => $answer->getBrand()->getName().' '.$answer->getName(),
                 'url' => $this->generateUrl('app_catalog', ['q' => $answer->getBrand()->getName().' '.$answer->getName()]),
+                'credit' => $answer->hasImage() ? ['page' => $answer->getImagePage(), 'text' => $answer->getImageCredit()] : null,
             ] : null,
         ]);
+    }
+
+    /**
+     * La photo du modèle à deviner, plus ou moins floue. Servie par le site, pour que son nom de fichier ne dévoile rien.
+     * Les niveaux 0 à 5 partent d'une vignette minuscule (le navigateur l'agrandit et la floute) : jamais nette avant la fin.
+     */
+    #[Route('/jeu/devine/photo/{level}', name: 'app_game_photo', requirements: ['level' => '[0-6]'], methods: ['GET'])]
+    public function photo(int $level, #[Autowire('%kernel.share_dir%')] string $shareDir): Response
+    {
+        $day = DailyGames::today();
+        $model = $this->games->mystery($day);
+        if (!$model->hasImage()) {
+            throw $this->createNotFoundException();
+        }
+
+        $file = $shareDir.'/jeu/'.$day->format('Y-m-d').'-'.$model->getId().'-'.$level.'.jpg';
+        if (!is_file($file)) {
+            $context = stream_context_create(['http' => ['timeout' => 15, 'header' => 'User-Agent: '.ImageFinder::USER_AGENT."
+"]]);
+            $bytes = @file_get_contents(ImageFinder::resize($model->getImageUrl(), DailyGames::PHOTO_WIDTHS[$level]), false, $context);
+            if (false === $bytes) {
+                throw $this->createNotFoundException();
+            }
+            @mkdir(\dirname($file), 0775, true);
+            file_put_contents($file, $bytes);
+        }
+
+        $response = new BinaryFileResponse($file, 200, ['Content-Type' => 'image/jpeg']);
+        $response->setPrivate()->setMaxAge(3600);
+
+        return $response;
     }
 
     /** @return array<string, mixed> */

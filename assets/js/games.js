@@ -156,6 +156,24 @@ function setupGuess(section) {
     const find = matcher(models);
     let picked = null;
     let state = day().devine ?? { guesses: [] };
+    const photo = section.querySelector('[data-mystery-photo]');
+    const credit = section.querySelector('[data-mystery-credit]');
+
+    // Plus nette à chaque erreur, mais jamais tout à fait avant la fin : la vignette grandit, le flou baisse
+    const BLUR = [16, 11, 10, 7, 6, 4, 0];
+    const showPhoto = () => {
+        if (!photo) return;
+        const level = state.done ? 6 : Math.min(state.guesses.length, 5);
+        photo.src = `${photo.dataset.src}${level}`;
+        photo.style.setProperty('--blur', `${BLUR[level]}px`);
+        photo.classList.toggle('is-sharp', level === 6);
+        if (state.done && state.answer?.credit) {
+            credit.replaceChildren('Photo : ', Object.assign(document.createElement('a'), {
+                href: state.answer.credit.page, textContent: state.answer.credit.text, target: '_blank', rel: 'noopener',
+            }), ', via Wikimedia Commons');
+            credit.hidden = false;
+        }
+    };
 
     autocomplete(input, section.querySelector('.combo-list'), async (q) => find(q), (item) => {
         picked = item;
@@ -171,6 +189,7 @@ function setupGuess(section) {
     };
 
     const render = () => {
+        showPhoto();
         if (state.clues) {
             clues.replaceChildren(...state.clues.map((clue) => {
                 const div = document.createElement('div');

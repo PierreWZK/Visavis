@@ -29,8 +29,9 @@ if [ "$1" = 'frankenphp' ]; then
         php bin/console doctrine:fixtures:load --append --no-interaction
     fi
 
-    # Les voitures de l'ADEME, rafraîchies à chaque démarrage : si l'API ne répond pas, le site démarre avec le catalogue déjà en base
-    php bin/console app:import:ademe --no-interaction || echo 'Import ADEME impossible pour le moment : catalogue inchangé.' >&2
+    # Les voitures de l'ADEME et les photos des nouveaux modèles, en arrière-plan : le site démarre sans attendre
+    # (avec le catalogue déjà en base) ; si l'API ne répond pas, rien ne change
+    (php bin/console app:import:ademe --no-interaction || echo 'Import ADEME impossible pour le moment : catalogue inchangé.' >&2) &
 
     php bin/console cache:warmup
 fi

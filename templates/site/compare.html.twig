@@ -35,6 +35,11 @@
                 {% for v in versions %}
                     {% set others = ids|filter(id => id != v.id) %}
                     <th scope="col">
+                        {% if v.model.hasImage %}
+                            <figure class="compare-photo">
+                                <img src="{{ v.model.imageUrl|commons_width(500) }}" srcset="{{ v.model.imageUrl|commons_width(330) }} 330w, {{ v.model.imageUrl|commons_width(500) }} 500w, {{ v.model.imageUrl|commons_width(960) }} 960w" sizes="(max-width: 760px) 45vw, 22vw" alt="{{ v.model.brand.name }} {{ v.model.name }}" width="500" height="375" loading="lazy">
+                            </figure>
+                        {% endif %}
                         <a class="compare-car" href="{{ path('app_version', {id: v.id}) }}">{{ m.version_title(v) }}</a>
                         <span class="compare-car-meta">{{ v.energy.label }} · {{ v.model.body.label }}</span>
                         {% if others|length >= 2 %}
@@ -85,6 +90,15 @@
             </tr>
         </tbody>
     </table>
+    {% set photographed = [] %}
+    {% for v in versions|filter(v => v.model.hasImage) %}
+        {% if v.model.id not in photographed|map(p => p.id) %}{% set photographed = photographed|merge([v.model]) %}{% endif %}
+    {% endfor %}
+    {% if photographed %}
+        <p class="footnote">Photos Wikimedia Commons, du modèle et pas forcément de cette version :
+            {% for model in photographed %}<a href="{{ model.imagePage }}" target="_blank" rel="noopener">{{ model.brand.name }} {{ model.name }}</a> par {{ model.imageCredit }}{{ not loop.last ? ' · ' }}{% endfor %}.
+        </p>
+    {% endif %}
     <p class="footnote">Données ADEME (Car Labelling, Licence Ouverte) et catalogue de démonstration : consommations et émissions WLTP, prix catalogue. « — » : non fourni par la source. Vérifiez les chiffres auprès du constructeur avant d'acheter.</p>
 {% endif %}
 {% endblock %}
