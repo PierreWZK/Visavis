@@ -1,20 +1,27 @@
 # Vis-à-vis · Deux voitures face à face, sans parti pris
 
-> Jour 09 du défi **30 jours, 30 projets** · Symfony · Doctrine · MySQL · ⏳ **À venir**
+> Jour 09 du défi **30 jours, 30 projets** · Symfony 8, Doctrine, MySQL, open data ADEME · 🟢 **En ligne : [visavis.projectp.fr](https://visavis.projectp.fr)**
 
-Un comparateur de voitures : on choisit deux à quatre modèles et **Vis-à-vis** les aligne caractéristique par caractéristique (prix, puissance, consommation, coffre, émissions), en mettant en valeur le meilleur de chaque ligne.
+![Page d'accueil de Vis-à-vis](docs/preview.png)
+
+Un comparateur de voitures neuves : on choisit deux à quatre versions et **Vis-à-vis** les aligne caractéristique par caractéristique (prix, puissance, consommation, CO₂, poids), en mettant en valeur le meilleur de chaque ligne, sans note globale. Deux jeux du jour complètent le comparateur.
+
+🔗 **Code :** [github.com/PierreWZK/Visavis](https://github.com/PierreWZK/Visavis)
 
 📄 Les règles détaillées sont dans le [cahier des charges](CAHIER_DES_CHARGES.md).
 
-## Au programme
+## Pages
 
-- Catalogue de modèles (marque, modèle, version, année) avec recherche et filtres.
-- Comparaison de 2 à 4 versions côte à côte, la meilleure valeur de chaque ligne en évidence.
-- Fiche détaillée d'une version.
-- Lien partageable vers une comparaison.
-- Administration du catalogue (EasyAdmin ou formulaires Symfony).
+| Adresse | Contenu |
+| --- | --- |
+| `/` | Accueil : un duel en direct, le catalogue en miniature, les jeux du jour |
+| `/catalogue` | Recherche, filtres, tri et sélection de 2 à 4 versions |
+| `/comparer?v=…` | La comparaison, partageable par son adresse |
+| `/version/{id}` | La fiche d'une version et ses rivales |
+| `/jeu` | Les jeux du jour |
+| `/admin` | Administration du catalogue (fermée sans mot de passe configuré) |
 
-## Ce qui est fait
+## Fonctionnalités
 
 - **Données** : environ 770 voitures neuves vendues en France, importées du jeu public **ADEME - Car Labelling** (prix, puissance, consommation, CO₂, poids, boîte, autonomie électrique), plus 51 versions de démonstration qui ajoutent le coffre et les places. Une valeur que la source ne donne pas s'affiche « — » et n'est jamais classée.
 - **Accueil** : un duel en direct (deux champs à suggestions, le duel se redessine), « En trois gestes » avec le catalogue en miniature, quatre modèles en photo, les jeux du jour.
@@ -26,7 +33,7 @@ Un comparateur de voitures : on choisit deux à quatre modèles et **Vis-à-vis*
   - **Devine la voiture** : un modèle à trouver en six essais ; chaque erreur dévoile un indice (prix, puissance, consommation, poids, initiale de la marque) et chaque essai dit si la marque et la carrosserie sont les bonnes, si la voiture à trouver est plus chère ou plus puissante.
 - **Design** : direction « split stage » tirée avec le skill tasteskill (Work Sans, marine et rose). Photos Wikimedia Commons, crédits dans le pied de page et dans `docs/photo-credits.json`.
 
-### Deux autres jeux possibles (quatre au plus)
+### Pistes : deux autres jeux
 
 - **Plus ou moins** : une voiture, puis une autre ; plus chère ou moins chère ? Une série à prolonger le plus loin possible.
 - **Le juste prix** : une version et ses chiffres, son prix à deviner à 5 % près.
@@ -43,6 +50,14 @@ php bin/console app:import:ademe   # les voitures de l'ADEME (relancer pour les 
 symfony serve -d             # http://127.0.0.1:8000
 ```
 
+## Tests
+
+```bash
+php bin/phpunit
+```
+
+Tests unitaires de la comparaison (meilleure valeur, écarts, valeurs absentes), de la lecture des lignes ADEME et des jeux du jour.
+
 ## Mise en ligne
 
 En ligne sur Coolify : **https://visavis.projectp.fr**. Chaque push sur `main` redéploie.
@@ -54,4 +69,4 @@ En ligne sur Coolify : **https://visavis.projectp.fr**. Chaque push sur `main` r
 
 ## Stack
 
-Symfony · Doctrine · MySQL · open data ADEME (Licence Ouverte).
+Symfony 8, Doctrine, Twig, EasyAdmin, MySQL 8.4, AssetMapper · open data ADEME (Licence Ouverte) · police Work Sans.
