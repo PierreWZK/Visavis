@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Les jeux du jour · Vis-à-vis{% endblock %}
+{% block description %}Deux jeux par jour avec les voitures du catalogue : trouver la meilleure sans voir les chiffres, puis deviner un modèle en six essais.{% endblock %}
+
+{% block body %}
+<div class="title-row" data-game data-date="{{ date|date('Y-m-d') }}">
+    <h1>Les jeux du {{ date|date('d/m') }}</h1>
+    <p>Les mêmes pour tout le monde aujourd'hui. Une partie par jour, revenez demain pour la suite.</p>
+</div>
+
+<div class="games">
+    <section class="game" aria-labelledby="aveugle-titre" data-blind>
+        <header class="game-head">
+            <h2 id="aveugle-titre">À l'aveugle</h2>
+            <span class="streak" data-streak="aveugle" hidden></span>
+        </header>
+        <p class="game-lede">Quatre voitures, rien que leurs noms. Trois questions, et les chiffres ne tombent qu'après votre choix.</p>
+
+        <p class="blind-question" aria-live="polite">
+            <span class="blind-step" data-blind-step>Question 1 sur 3</span>
+            <span data-blind-question>{{ questions[0] }}</span>
+        </p>
+        <ul class="blind-cars">
+            {% for car in cars %}
+                <li>
+                    <button type="button" class="blind-car" data-choice="{{ loop.index0 }}">
+                        <span class="blind-name">{{ car.label }}</span>
+                        <span class="blind-meta">{{ car.meta }}</span>
+                        <span class="blind-value" data-value></span>
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="game-foot">
+            <p class="game-result" data-blind-result aria-live="polite"></p>
+            <button type="button" class="btn" data-blind-next hidden>Question suivante</button>
+            <a class="btn btn-quiet" data-blind-compare hidden>Comparer ces quatre</a>
+        </div>
+        <script type="application/json" data-questions>{{ questions|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+    </section>
+
+    <section class="game" aria-labelledby="devine-titre" data-guess>
+        <header class="game-head">
+            <h2 id="devine-titre">Devine la voiture</h2>
+            <span class="streak" data-streak="devine" hidden></span>
+        </header>
+        <p class="game-lede">Un modèle du catalogue à trouver en {{ tries }} essais. Chaque erreur dévoile un indice de plus.</p>
+
+        <dl class="clues" data-clues aria-live="polite">
+            <div><dt>{{ firstClue.label }}</dt><dd>{{ firstClue.value }}</dd></div>
+        </dl>
+
+        <form class="guess-form" data-guess-form autocomplete="off">
+            <label class="field combo">
+                <span>Votre proposition <span data-tries-left>({{ tries }} essais)</span></span>
+                <input type="text" name="guess" placeholder="Marque ou modèle" role="combobox" aria-expanded="false" aria-controls="guess-list" aria-autocomplete="list" data-guess-input>
+                <ul class="combo-list" id="guess-list" role="listbox" hidden></ul>
+            </label>
+            <button class="btn" type="submit">Proposer</button>
+        </form>
+
+        <table class="guesses" data-guesses hidden>
+            <caption>La voiture à trouver, comparée à chaque essai</caption>
+            <thead>
+                <tr><th scope="col">Essai</th><th scope="col">Même marque</th><th scope="col">Même carrosserie</th><th scope="col">Prix</th><th scope="col">Puissance</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p class="game-result" data-guess-result aria-live="polite"></p>
+        <script type="application/json" data-models>{{ models|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+    </section>
+</div>
+
+<div class="share" data-share hidden>
+    <p data-share-text></p>
+    <button class="btn" type="button" data-share-button>Partager mon score</button>
+</div>
+{% endblock %}

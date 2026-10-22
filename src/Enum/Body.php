@@ -10,6 +10,8 @@ enum Body: string
     case Estate = 'estate';
     case Suv = 'suv';
     case Mpv = 'mpv';
+    case Coupe = 'coupe';
+    case Convertible = 'convertible';
 
     public function label(): string
     {
@@ -20,6 +22,8 @@ enum Body: string
             self::Estate => 'Break',
             self::Suv => 'SUV',
             self::Mpv => 'Monospace',
+            self::Coupe => 'Coupé',
+            self::Convertible => 'Cabriolet',
         };
     }
 }

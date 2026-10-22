@@ -77,6 +77,22 @@ final class ComparatorTest extends TestCase
         $this->assertNull($rows['consumption']['cells'][1]['gap']);
     }
 
+    public function testUnknownValuesAreNeverRanked(): void
+    {
+        $withTrunk = $this->version(Energy::Petrol, 20000, 100, 5.5, 350, 125);
+        $ademe = $this->version(Energy::Petrol, 21000, 110, 5.0, 0, 120)->setTrunk(null);
+        $ademeToo = $this->version(Energy::Petrol, 22000, 120, 5.2, 0, 118)->setTrunk(null)->setWeight(1200);
+        $rows = $this->rowsByKey($withTrunk, $ademe, $ademeToo);
+
+        $this->assertSame([false, false, false], array_column($rows['trunk']['cells'], 'best'), 'un seul coffre connu : rien à départager');
+        $this->assertNull($rows['trunk']['cells'][1]['value']);
+        $this->assertNull($rows['weight']['cells'][0]['gap'], 'poids inconnu : pas d\'écart');
+        $this->assertArrayNotHasKey('electricRange', $rows, 'aucune autonomie connue : ligne absente');
+
+        $rows = $this->rowsByKey($ademe, $ademeToo);
+        $this->assertArrayNotHasKey('trunk', $rows);
+    }
+
     public function testParseIds(): void
     {
         $this->assertSame([12, 34, 56], Comparator::parseIds('12,34,56'));

@@ -31,9 +31,10 @@ class Model
     #[Assert\NotNull]
     private ?Body $body = null;
 
-    #[ORM\Column(type: 'smallint')]
+    /** Inconnu pour les modèles venus de l'ADEME */
+    #[ORM\Column(type: 'smallint', nullable: true)]
     #[Assert\Range(min: 1, max: 9)]
-    private int $seats = 5;
+    private ?int $seats = null;
 
     /** @var Collection<int, Version> */
     #[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'model', orphanRemoval: true)]
@@ -90,12 +91,12 @@ class Model
         return $this;
     }
 
-    public function getSeats(): int
+    public function getSeats(): ?int
     {
         return $this->seats;
     }
 
-    public function setSeats(int $seats): static
+    public function setSeats(?int $seats): static
     {
         $this->seats = $seats;
 

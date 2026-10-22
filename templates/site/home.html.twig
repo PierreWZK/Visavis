@@ -25,45 +25,43 @@
     <div class="stage">
         <div class="stage-text">
             <nav class="home-nav" aria-label="Navigation principale">
-                <a href="#principe">Le principe</a>
-                <a href="{{ path('app_home') }}" class="wordmark" aria-label="Vis-à-vis, accueil">Vis-à-vis</a>
                 <a href="{{ path('app_catalog') }}">Catalogue</a>
+                <a href="{{ path('app_home') }}" class="wordmark" aria-label="Vis-à-vis, accueil">Vis-à-vis</a>
+                <a href="{{ path('app_game') }}">Jeux du jour</a>
             </nav>
 
             <section class="hero" data-stage-step="duel">
                 <h1 data-reveal>Deux voitures,<br> face à face</h1>
                 <p class="lead" data-reveal>
-                    Vis-à-vis aligne deux à quatre versions ligne par ligne, du prix au coffre,
-                    et montre le meilleur de chaque ligne. Pas de note globale : les chiffres, côte à côte.
+                    {{ count|number_format(0, ',', ' ') }} voitures neuves vendues en France, alignées ligne par ligne
+                    du prix au poids. Le meilleur de chaque ligne ressort, sans note globale.
                 </p>
-                <a class="btn" href="{{ path('app_catalog') }}" data-reveal>Choisir mes voitures</a>
-
-                {% if example %}
-                    <form class="picker" method="get" action="{{ path('app_compare') }}" data-picker data-reveal>
-                        <p>Essayez tout de suite avec deux voitures du catalogue&nbsp;:</p>
-                        {% for side in [0, 1] %}
-                            <label class="field">
-                                <span>{{ side == 0 ? 'À gauche' : 'À droite' }}</span>
-                                <select name="ids[]" data-side="{{ side }}">
-                                    {# cars est trié par marque : un groupe par marque #}
-                                    {% for c in cars %}
-                                        {% if loop.first or c.brand != cars[loop.index0 - 1].brand %}{% if not loop.first %}</optgroup>{% endif %}<optgroup label="{{ c.brand }}">{% endif %}
-                                        <option value="{{ c.id }}" {{ c.id == example[side].id ? 'selected' }}>{{ c.model }} {{ c.name }}</option>
-                                        {% if loop.last %}</optgroup>{% endif %}
-                                    {% endfor %}
-                                </select>
-                            </label>
-                        {% endfor %}
-                        <button class="btn btn-quiet" type="submit">Comparer ces deux</button>
-                    </form>
-                {% endif %}
+                <div class="hero-actions" data-reveal>
+                    <a class="btn" href="{{ path('app_catalog') }}">Choisir mes voitures</a>
+                    <a class="btn btn-quiet" href="{{ path('app_game') }}">Jeux du jour</a>
+                </div>
             </section>
+
+            {% if example %}
+                <form class="picker" method="get" action="{{ path('app_compare') }}" data-picker autocomplete="off">
+                    <p class="picker-title">Essayez avec deux voitures du catalogue</p>
+                    {% for side in [0, 1] %}
+                        <label class="field combo">
+                            <span>{{ side == 0 ? 'À gauche' : 'À droite' }}</span>
+                            <input type="text" value="{{ example[side] }}" placeholder="Marque, modèle, version" role="combobox" aria-expanded="false" aria-controls="duel-list-{{ side }}" aria-autocomplete="list" data-side="{{ side }}">
+                            <ul class="combo-list" id="duel-list-{{ side }}" role="listbox" hidden></ul>
+                            <input type="hidden" name="ids[]" value="{{ example[side].id }}">
+                        </label>
+                    {% endfor %}
+                    <button class="btn btn-quiet" type="submit">Comparer ces deux</button>
+                </form>
+            {% endif %}
 
             <section id="principe" class="steps" aria-labelledby="principe-titre">
                 <h2 id="principe-titre">En trois gestes</h2>
                 <div class="step" data-stage-step="filter">
                     <p class="step-say">D'abord, filtrez le catalogue.</p>
-                    <p>Une marque, un modèle, puis l'énergie, le budget, la carrosserie et le nombre de places.</p>
+                    <p>Une marque, un modèle, puis l'énergie, la carrosserie, la boîte et le budget.</p>
                 </div>
                 <div class="step" data-stage-step="pick">
                     <p class="step-say">Ensuite, cochez jusqu'à quatre versions.</p>
@@ -89,15 +87,15 @@
                         <dl class="duel-rows" data-duel-rows>
                             {% for row in exampleRows %}
                                 <div class="duel-row">
-                                    <dd class="{{ row.cells[0].best ? 'win' }}">{{ m.value(row.key, row.cells[0].value) }} <span class="unit">{{ row.cells[0].unit }}</span></dd>
-                                    <dt>{{ row.label }}</dt>
-                                    <dd class="{{ row.cells[1].best ? 'win' }}">{{ m.value(row.key, row.cells[1].value) }} <span class="unit">{{ row.cells[1].unit }}</span></dd>
+                                    <dd class="{{ row.cells[0].best ? 'win' }}">{{ m.measure(row.cells[0].value, row.cells[0].unit, row.key == 'consumption' ? 1 : 0) }}</dd>
+                                    <dt>{{ row.key == 'weight' ? 'Poids' : row.label }}</dt>
+                                    <dd class="{{ row.cells[1].best ? 'win' }}">{{ m.measure(row.cells[1].value, row.cells[1].unit, row.key == 'consumption' ? 1 : 0) }}</dd>
                                 </div>
                             {% endfor %}
                         </dl>
                     {% endif %}
                     <figcaption class="panel-bar">
-                        <span>{{ count }} versions au catalogue</span>
+                        <span>{{ count|number_format(0, ',', ' ') }} versions au catalogue</span>
                         {% if example %}<a href="{{ path('app_compare', {v: example|map(e => e.id)|join(',')}) }}" data-duel-link>Ouvrir cette comparaison</a>{% endif %}
                     </figcaption>
                 </figure>
@@ -149,6 +147,24 @@
         </ul>
     </section>
 
+    <section class="teaser" aria-labelledby="jeux-titre">
+        <div class="teaser-text">
+            <h2 id="jeux-titre">Deux jeux par jour</h2>
+            <p>Les mêmes pour tout le monde, tirés du catalogue. Une partie par jour, un score à partager.</p>
+            <a class="btn" href="{{ path('app_game') }}">Jouer aujourd'hui</a>
+        </div>
+        <div class="teaser-list">
+            <a href="{{ path('app_game') }}#aveugle-titre" data-reveal>
+                <h3>À l'aveugle</h3>
+                <p>Quatre voitures, leurs noms seulement. Laquelle coûte le moins cher, laquelle est la plus puissante ? Les chiffres tombent après votre choix.</p>
+            </a>
+            <a href="{{ path('app_game') }}#devine-titre" data-reveal>
+                <h3>Devine la voiture</h3>
+                <p>Un modèle à trouver en six essais. Chaque erreur dévoile un indice : le prix, la puissance, le poids…</p>
+            </a>
+        </div>
+    </section>
+
     <section class="sense" aria-labelledby="sens-titre">
         <div class="sense-text">
             <h2 id="sens-titre">Le sens de chaque ligne</h2>
@@ -161,13 +177,14 @@
             <div data-reveal><dt>Prix</dt><dd>le plus bas</dd></div>
             <div data-reveal><dt>Puissance</dt><dd>la plus haute</dd></div>
             <div data-reveal><dt>Consommation</dt><dd>la plus basse, à énergie égale</dd></div>
-            <div data-reveal><dt>Coffre</dt><dd>le plus grand</dd></div>
             <div data-reveal><dt>Émissions de CO₂</dt><dd>les plus basses</dd></div>
+            <div data-reveal><dt>Poids</dt><dd>le plus léger</dd></div>
+            <div data-reveal><dt>Autonomie électrique</dt><dd>la plus longue</dd></div>
         </dl>
     </section>
 
     <section class="honest" aria-labelledby="honnete-titre">
-        <h2 id="honnete-titre">Ce que Vis&#8209;à&#8209;vis ne fait pas</h2>
+        <h2 id="honnete-titre">Ce qu'il ne fait pas</h2>
         <div class="honest-list">
             <div data-reveal>
                 <h3>Pas de verdict</h3>
@@ -175,11 +192,11 @@
             </div>
             <div data-reveal>
                 <h3>Pas de faux duel</h3>
-                <p>Un litre d'essence et un kilowattheure ne se comparent pas : la consommation se départage à énergie égale.</p>
+                <p>Un litre d'essence et un kilowattheure ne se comparent pas : la consommation se départage à énergie égale. Une valeur inconnue n'est jamais classée.</p>
             </div>
             <div data-reveal>
                 <h3>Pas de publicité</h3>
-                <p>Aucun constructeur mis en avant, aucune annonce. Le catalogue est un jeu de démonstration de {{ count }} versions.</p>
+                <p>Aucun constructeur mis en avant, aucune annonce. Les chiffres viennent de l'ADEME (Car Labelling, données publiques) et d'un catalogue de démonstration.</p>
             </div>
         </div>
     </section>
@@ -191,5 +208,4 @@
     </section>
 </main>
 {{ include('_footer.html.twig', {credits: gallery}) }}
-<script type="application/json" id="cars">{{ cars|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
 {% endblock %}

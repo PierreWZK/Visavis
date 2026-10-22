@@ -1,10 +1,15 @@
-{# Une valeur chiffrée à la française : 25 000, 4,7 #}
-{% macro num(value, decimals = 0) %}{{ value|number_format(decimals, ',', ' ') }}{% endmacro %}
+{# Une valeur chiffrée à la française : 25 000, 4,7 ; une valeur inconnue : — #}
+{% macro num(value, decimals = 0) %}{{ value is null ? '—' : value|number_format(decimals, ',', ' ') }}{% endmacro %}
 
 {% macro value(key, value) %}{{ _self.num(value, key == 'consumption' ? 1 : 0) }}{% endmacro %}
+
+{# La valeur et son unité, ou un tiret seul quand elle est inconnue #}
+{% macro measure(value, unit, decimals = 0) %}{% if value is null %}<span class="unknown" title="Non fourni par la source">—</span>{% else %}{{ _self.num(value, decimals) }} <span class="unit">{{ unit }}</span>{% endif %}{% endmacro %}
 
 {% macro version_title(version) %}
     <span class="v-brand">{{ version.model.brand.name }}</span>
     <span class="v-model">{{ version.model.name }}</span>
     <span class="v-name">{{ version.name }}</span>
 {% endmacro %}
+
+{% macro source(version) %}{{ version.source == 'ademe' ? 'Données ADEME' : 'Catalogue de démonstration' }}{% endmacro %}

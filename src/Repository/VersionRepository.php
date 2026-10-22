@@ -5,7 +5,10 @@ namespace App\Repository;
 use App\Entity\Version;
 use App\Enum\Body;
 use App\Enum\Energy;
+use App\Enum\Gearbox;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<Version> */
@@ -21,18 +24,42 @@ class VersionRepository extends ServiceEntityRepository
         'name' => ['b.name', 'ASC'],
         'price' => ['v.price', 'ASC'],
         'power' => ['v.power', 'DESC'],
-        'trunk' => ['v.trunk', 'DESC'],
+        'co2' => ['v.co2', 'ASC'],
     ];
 
+    public const int PER_PAGE = 50;
+
     /** @return Version[] */
-    public function search(?string $query, ?Energy $energy, ?int $maxPrice, ?Body $body, ?int $minSeats, string $sort = 'name'): array
+    public function search(?string $query, ?Energy $energy, ?int $maxPrice, ?Body $body, ?Gearbox $gearbox, string $sort = 'name'): array
+    {
+        return $this->filtered($query, $energy, $maxPrice, $body, $gearbox, $sort)->getQuery()->getResult();
+    }
+
+    /**
+     * Une page du catalogue filtré, et le nombre total de versions qui correspondent.
+     *
+     * @return array{versions: Version[], total: int}
+     */
+    public function page(int $page, ?string $query, ?Energy $energy, ?int $maxPrice, ?Body $body, ?Gearbox $gearbox, string $sort = 'name'): array
+    {
+        $paginator = new Paginator($this->filtered($query, $energy, $maxPrice, $body, $gearbox, $sort)
+            ->setFirstResult(($page - 1) * self::PER_PAGE)
+            ->setMaxResults(self::PER_PAGE));
+
+        return ['versions' => iterator_to_array($paginator), 'total' => \count($paginator)];
+    }
+
+    private function filtered(?string $query, ?Energy $energy, ?int $maxPrice, ?Body $body, ?Gearbox $gearbox, string $sort): QueryBuilder
     {
         [$column, $direction] = self::SORTS[$sort] ?? self::SORTS['name'];
         $qb = $this->createQueryBuilder('v')
             ->addSelect('m', 'b')
             ->join('v.model', 'm')
             ->join('m.brand', 'b')
-            ->orderBy($column, $direction)->addOrderBy('b.name')->addOrderBy('m.name')->addOrderBy('v.price');
+            // Les valeurs inconnues en dernier, quel que soit le sens
+            ->addSelect("CASE WHEN $column IS NULL THEN 1 ELSE 0 END AS HIDDEN unknown")
+            ->orderBy('unknown')->addOrderBy($column, $direction)
+            ->addOrderBy('b.name')->addOrderBy('m.name')->addOrderBy('v.price')->addOrderBy('v.id');
 
         if ($query) {
             // Chaque mot doit apparaître dans la marque, le modèle ou la version : « clio hybride », « tesla 3 »
@@ -50,11 +77,11 @@ class VersionRepository extends ServiceEntityRepository
         if ($body) {
             $qb->andWhere('m.body = :body')->setParameter('body', $body);
         }
-        if ($minSeats) {
-            $qb->andWhere('m.seats >= :seats')->setParameter('seats', $minSeats);
+        if ($gearbox) {
+            $qb->andWhere('v.gearbox = :gearbox')->setParameter('gearbox', $gearbox);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 
     /**

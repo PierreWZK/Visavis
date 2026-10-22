@@ -47,7 +47,7 @@
                     <th scope="row">
                         {{ row.label }}
                         <small>
-                            {%- if not row.comparable -%}énergies différentes, non départagé
+                            {%- if not row.comparable -%}{{ row.mixed ? 'énergies différentes, non départagé' : 'une seule valeur connue' }}
                             {%- else -%}{{ row.higherIsBetter ? 'le plus haut gagne' : 'le plus bas gagne' }}{{ row.mixed ? ', à énergie égale' }}
                             {%- endif -%}
                         </small>
@@ -55,7 +55,7 @@
                     {% for cell in row.cells %}
                         {% set v = versions[loop.index0] %}
                         <td class="{{ cell.best ? 'best' }}" data-car="{{ v.model }} {{ v.name }}">
-                            <span class="value">{{ m.value(row.key, cell.value) }} <span class="unit">{{ cell.unit }}</span></span>
+                            <span class="value">{{ m.measure(cell.value, cell.unit, row.key == 'consumption' ? 1 : 0) }}</span>
                             {% if cell.best %}
                                 <span class="gap">Meilleur</span>
                             {% elseif cell.gap is not null %}
@@ -67,15 +67,21 @@
                 </tr>
             {% endfor %}
             <tr class="info">
-                <th scope="row">Places</th>
-                {% for v in versions %}<td data-car="{{ v.model }} {{ v.name }}">{{ v.model.seats }}</td>{% endfor %}
+                <th scope="row">Boîte</th>
+                {% for v in versions %}<td data-car="{{ v.model }} {{ v.name }}">{{ v.gearbox.label ?? '—' }}</td>{% endfor %}
             </tr>
+            {% if versions|filter(v => v.model.seats)|length %}
+                <tr class="info">
+                    <th scope="row">Places</th>
+                    {% for v in versions %}<td data-car="{{ v.model }} {{ v.name }}">{{ v.model.seats ?? '—' }}</td>{% endfor %}
+                </tr>
+            {% endif %}
             <tr class="info">
-                <th scope="row">Année</th>
-                {% for v in versions %}<td data-car="{{ v.model }} {{ v.name }}">{{ v.year }}</td>{% endfor %}
+                <th scope="row">Source</th>
+                {% for v in versions %}<td data-car="{{ v.model }} {{ v.name }}">{{ m.source(v) }}</td>{% endfor %}
             </tr>
         </tbody>
     </table>
-    <p class="footnote">Données de démonstration, approximatives : vérifiez les chiffres auprès du constructeur avant d'acheter.</p>
+    <p class="footnote">Données ADEME (Car Labelling, Licence Ouverte) et catalogue de démonstration : consommations et émissions WLTP, prix catalogue. « — » : non fourni par la source. Vérifiez les chiffres auprès du constructeur avant d'acheter.</p>
 {% endif %}
 {% endblock %}

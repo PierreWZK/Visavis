@@ -29,8 +29,8 @@
             <header class="topbar">
                 <a href="{{ path('app_home') }}" class="wordmark" aria-label="Vis-à-vis, accueil">Vis-à-vis</a>
                 <nav class="topbar-links" aria-label="Navigation principale">
-                    <a href="{{ path('app_home') }}#principe">Le principe</a>
                     <a href="{{ path('app_catalog') }}" {{ app.current_route == 'app_catalog' ? 'aria-current="page"' }}>Catalogue</a>
+                    <a href="{{ path('app_game') }}" {{ app.current_route == 'app_game' ? 'aria-current="page"' }}>Jeux du jour</a>
                 </nav>
             </header>
             <main class="sheet">

@@ -9,7 +9,7 @@
 <div class="title-row title-row-split">
     <div>
         <h1 class="version-title">{{ m.version_title(version) }}</h1>
-        <p>{{ version.energy.label }} · {{ version.model.body.label }} · {{ version.model.seats }} places · {{ version.year }}</p>
+        <p>{{ version.energy.label }} · {{ version.model.body.label }}{{ version.gearbox ? ' · boîte ' ~ version.gearbox.label|lower }}{{ version.model.seats ? ' · ' ~ version.model.seats ~ ' places' }}{{ version.year ? ' · ' ~ version.year }} · {{ m.source(version) }}</p>
     </div>
     <div class="title-actions">
         {% set siblings = version.model.versions|filter(s => s.id != version.id) %}
@@ -21,11 +21,13 @@
 </div>
 
 <dl class="specs">
-    <div><dt>Prix</dt><dd>{{ m.num(version.price) }} <span class="unit">€</span></dd></div>
-    <div><dt>Puissance</dt><dd>{{ m.num(version.power) }} <span class="unit">ch</span></dd></div>
-    <div><dt>Consommation</dt><dd>{{ m.num(version.consumption, 1) }} <span class="unit">{{ version.energy.consumptionUnit }}</span></dd></div>
-    <div><dt>Coffre</dt><dd>{{ m.num(version.trunk) }} <span class="unit">L</span></dd></div>
-    <div><dt>Émissions CO₂</dt><dd>{{ m.num(version.co2) }} <span class="unit">g/km</span></dd></div>
+    <div><dt>Prix</dt><dd>{{ m.measure(version.price, '€') }}</dd></div>
+    <div><dt>Puissance</dt><dd>{{ m.measure(version.power, 'ch') }}</dd></div>
+    <div><dt>Consommation</dt><dd>{{ m.measure(version.consumption, version.energy.consumptionUnit, 1) }}</dd></div>
+    <div><dt>Émissions CO₂</dt><dd>{{ m.measure(version.co2, 'g/km') }}</dd></div>
+    <div><dt>Poids à vide</dt><dd>{{ m.measure(version.weight, 'kg') }}</dd></div>
+    {% if version.electricRange %}<div><dt>Autonomie électrique</dt><dd>{{ m.measure(version.electricRange, 'km') }}</dd></div>{% endif %}
+    <div><dt>Coffre</dt><dd>{{ m.measure(version.trunk, 'L') }}</dd></div>
 </dl>
 
 {% if rivals %}
@@ -37,7 +39,7 @@
                 <li>
                     <a href="{{ path('app_compare', {v: version.id ~ ',' ~ r.id}) }}">
                         <span class="rivals-name">{{ m.version_title(r) }}</span>
-                        <span class="rivals-meta">{{ r.energy.label }} · {{ m.num(r.power) }} ch</span>
+                        <span class="rivals-meta">{{ r.energy.label }} · {{ m.num(r.power) }} ch{{ r.gearbox ? ' · ' ~ r.gearbox.label|lower }}</span>
                         <span class="rivals-price">{{ m.num(r.price) }} €</span>
                         <span class="rivals-diff">{{ r.price >= version.price ? '+' : '−' }}{{ m.num((r.price - version.price)|abs) }} €</span>
                     </a>

@@ -19,14 +19,18 @@ final class Comparator
         'price' => ['Prix', '€', false],
         'power' => ['Puissance', 'ch', true],
         'consumption' => ['Consommation', null, false],
-        'trunk' => ['Coffre', 'L', true],
         'co2' => ['Émissions CO₂', 'g/km', false],
+        'weight' => ['Poids à vide', 'kg', false],
+        'electricRange' => ['Autonomie électrique', 'km', true],
+        'trunk' => ['Coffre', 'L', true],
     ];
 
     /**
+     * Les lignes dont au moins une voiture a la valeur. Une valeur inconnue (null) n'est jamais classée.
+     *
      * @param Version[] $versions
      *
-     * @return list<array{key: string, label: string, higherIsBetter: bool, comparable: bool, mixed: bool, cells: list<array{value: int|float, unit: string, best: bool, gap: int|float|null, gapPercent: float|null}>}>
+     * @return list<array{key: string, label: string, higherIsBetter: bool, comparable: bool, mixed: bool, cells: list<array{value: int|float|null, unit: string, best: bool, gap: int|float|null, gapPercent: float|null}>}>
      */
     public function rows(array $versions): array
     {
@@ -36,18 +40,22 @@ final class Comparator
                 'value' => $v->{'get'.ucfirst($key)}(),
                 'unit' => $unit ?? $v->getEnergy()->consumptionUnit(),
             ], $versions);
+            $known = array_filter($cells, fn (array $cell) => null !== $cell['value']);
+            if (!$known) {
+                continue;
+            }
 
             // Meilleur par unité : les thermiques entre elles, les électriques entre elles
             $byUnit = [];
-            foreach ($cells as $cell) {
+            foreach ($known as $cell) {
                 $byUnit[$cell['unit']][] = $cell['value'];
             }
-            $comparable = \count($byUnit) < \count($cells);
+            $comparable = \count($byUnit) < \count($known);
 
             foreach ($cells as &$cell) {
-                $group = $byUnit[$cell['unit']];
+                $group = null === $cell['value'] ? [] : $byUnit[$cell['unit']];
                 $ranked = \count($group) > 1;
-                $best = $higherIsBetter ? max($group) : min($group);
+                $best = $ranked ? ($higherIsBetter ? max($group) : min($group)) : null;
                 $isBest = $ranked && $cell['value'] == $best;
                 $gap = $ranked && !$isBest ? abs($cell['value'] - $best) : null;
                 $cell += [
