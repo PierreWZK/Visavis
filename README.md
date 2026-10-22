@@ -35,7 +35,12 @@ symfony serve -d             # http://127.0.0.1:8000
 
 ## Mise en ligne
 
-Prévue sur Coolify : **https://visavis.projectp.fr**.
+En ligne sur Coolify : **https://visavis.projectp.fr**. Chaque push sur `main` redéploie.
+
+- Image `Dockerfile` (FrankenPHP, PHP 8.4), port 80. Au démarrage, `docker/entrypoint.sh` attend MySQL, lance les migrations et, si le catalogue est vide, charge les versions de démonstration.
+- Base : MySQL 8.4 dans le même projet Coolify.
+- Variables d'environnement : `APP_SECRET`, `DATABASE_URL` (URL interne, `?serverVersion=8.4.0&charset=utf8mb4`), `DEFAULT_URI`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`.
+- L'administration (`/admin`) reste fermée tant que `ADMIN_PASSWORD_HASH` est vide : générez le hash avec `php bin/console security:hash-password`, puis collez-le dans Coolify.
 
 ## Stack
 
