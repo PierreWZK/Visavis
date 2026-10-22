@@ -23,11 +23,14 @@ if [ "$1" = 'frankenphp' ]; then
 
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 
-    # Premier démarrage : catalogue vide, on charge les versions de démonstration (jamais par-dessus des données)
-    if php bin/console dbal:run-sql 'SELECT COUNT(*) AS n FROM version' | grep -qE '^\s*0\s*$'; then
-        echo 'Catalogue vide : chargement des données de démonstration.'
+    # Premier démarrage : pas encore de catalogue de démonstration, on le charge (jamais par-dessus des données)
+    if php bin/console dbal:run-sql "SELECT COUNT(*) AS n FROM version WHERE source = 'demo'" | grep -qE '^\s*0\s*$'; then
+        echo 'Chargement du catalogue de démonstration.'
         php bin/console doctrine:fixtures:load --append --no-interaction
     fi
+
+    # Les voitures de l'ADEME, rafraîchies à chaque démarrage : si l'API ne répond pas, le site démarre avec le catalogue déjà en base
+    php bin/console app:import:ademe --no-interaction || echo 'Import ADEME impossible pour le moment : catalogue inchangé.' >&2
 
     php bin/console cache:warmup
 fi

@@ -5,11 +5,12 @@
 
 {% block body %}
 {% set selectedIds = selected|map(s => s.id) %}
-{% set filtered = filters.q or filters.energy or filters.budget or filters.body or filters.seats %}
+{% set filtered = filters.q or filters.energy or filters.budget or filters.body or filters.gearbox %}
+{% set params = {q: filters.q ?: null, energy: filters.energy.value ?? null, body: filters.body.value ?? null, gearbox: filters.gearbox.value ?? null, budget: filters.budget, sort: sort != 'name' ? sort : null, v: selectedIds ? selectedIds|join(',') : null} %}
 
 <div class="title-row">
     <h1>Catalogue</h1>
-    <p>Cochez de deux à quatre versions, puis comparez-les ligne par ligne.</p>
+    <p>{{ total }} voitures neuves vendues en France. Cochez-en de deux à quatre, puis comparez-les ligne par ligne.</p>
 </div>
 
 <form class="toolbar" method="get" action="{{ path('app_catalog') }}" role="search" data-filters>
@@ -36,11 +37,11 @@
         </select>
     </label>
     <label class="field">
-        <span>Places</span>
-        <select name="seats">
+        <span>Boîte</span>
+        <select name="gearbox">
             <option value="">Toutes</option>
-            {% for s in [4, 5, 7] %}
-                <option value="{{ s }}" {{ filters.seats == s ? 'selected' }}>{{ s }} et plus</option>
+            {% for g in gearboxes %}
+                <option value="{{ g.value }}" {{ filters.gearbox == g ? 'selected' }}>{{ g.label }}</option>
             {% endfor %}
         </select>
     </label>
@@ -56,17 +57,17 @@
 
 <div class="list-head">
     <p class="count">
-        {{ versions|length }} version{{ versions|length > 1 ? 's' }}
+        {{ total }} version{{ total > 1 ? 's' }}{% if pages > 1 %} · page {{ page }} sur {{ pages }}{% endif %}
         {% if filtered %}· <a href="{{ path('app_catalog', {v: selectedIds ? selectedIds|join(',') : null}) }}" data-keep-selection>Effacer les filtres</a>{% endif %}
     </p>
     <form method="get" action="{{ path('app_catalog') }}" class="sort" data-sort>
-        {% for key, value in {q: filters.q, energy: filters.energy.value ?? null, body: filters.body.value ?? null, seats: filters.seats, budget: filters.budget} %}
+        {% for key, value in {q: filters.q, energy: filters.energy.value ?? null, body: filters.body.value ?? null, gearbox: filters.gearbox.value ?? null, budget: filters.budget} %}
             {% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
         {% endfor %}
         <input type="hidden" name="v" value="{{ selectedIds|join(',') }}" data-selection>
         <label>Trier par
             <select name="sort">
-                {% for key, label in {name: 'marque', price: 'prix croissant', power: 'puissance', trunk: 'coffre'} %}
+                {% for key, label in {name: 'marque', price: 'prix croissant', power: 'puissance', co2: 'CO₂'} %}
                     <option value="{{ key }}" {{ sort == key ? 'selected' }}>{{ label }}</option>
                 {% endfor %}
             </select>
@@ -96,8 +97,8 @@
                     <th scope="col" class="num">Prix</th>
                     <th scope="col" class="num">Puissance</th>
                     <th scope="col" class="num">Consommation</th>
-                    <th scope="col" class="num">Coffre</th>
                     <th scope="col" class="num">CO₂</th>
+                    <th scope="col" class="num">Poids</th>
                 </tr>
             </thead>
             <tbody>
@@ -108,17 +109,25 @@
                         </td>
                         <td class="identity">
                             <label for="pick-{{ v.id }}" class="identity-name">{{ m.version_title(v) }}</label>
-                            <span class="identity-meta">{{ v.energy.label }} · {{ v.model.body.label }} · {{ v.model.seats }} places · {{ v.year }} · <a href="{{ path('app_version', {id: v.id}) }}">Fiche</a></span>
+                            <span class="identity-meta">{{ v.energy.label }} · {{ v.model.body.label }}{{ v.gearbox ? ' · ' ~ v.gearbox.label|lower }}{{ v.model.seats ? ' · ' ~ v.model.seats ~ ' places' }} · <a href="{{ path('app_version', {id: v.id}) }}">Fiche</a></span>
                         </td>
-                        <td class="num price">{{ m.num(v.price) }} <span class="unit">€</span></td>
-                        <td class="num">{{ m.num(v.power) }} <span class="unit">ch</span></td>
-                        <td class="num">{{ m.num(v.consumption, 1) }} <span class="unit">{{ v.energy.consumptionUnit }}</span></td>
-                        <td class="num">{{ m.num(v.trunk) }} <span class="unit">L</span></td>
-                        <td class="num">{{ m.num(v.co2) }} <span class="unit">g/km</span></td>
+                        <td class="num price">{{ m.measure(v.price, '€') }}</td>
+                        <td class="num">{{ m.measure(v.power, 'ch') }}</td>
+                        <td class="num">{{ m.measure(v.consumption, v.energy.consumptionUnit, 1) }}</td>
+                        <td class="num">{{ m.measure(v.co2, 'g/km') }}</td>
+                        <td class="num">{{ m.measure(v.weight, 'kg') }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        {% if pages > 1 %}
+            <nav class="pager" aria-label="Pages du catalogue">
+                {% if page > 1 %}<a class="btn btn-quiet" href="{{ path('app_catalog', params|merge({page: page - 1})) }}" data-keep-selection rel="prev">Page précédente</a>{% endif %}
+                <span>Page {{ page }} sur {{ pages }}</span>
+                {% if page < pages %}<a class="btn btn-quiet" href="{{ path('app_catalog', params|merge({page: page + 1})) }}" data-keep-selection rel="next">Page suivante</a>{% endif %}
+            </nav>
+        {% endif %}
     {% endif %}
 
     <div class="compare-bar">

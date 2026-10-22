@@ -1,4 +1,6 @@
 import './styles/app.css';
+import { autocomplete } from './js/autocomplete.js';
+import './js/games.js';
 
 const MAX = 4;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -96,29 +98,27 @@ const CRITERIA = [
     ['price', 'Prix', '€', false],
     ['power', 'Puissance', 'ch', true],
     ['consumption', 'Consommation', null, false],
-    ['trunk', 'Coffre', 'L', true],
     ['co2', 'Émissions CO₂', 'g/km', false],
+    ['weight', 'Poids', 'kg', false],
 ];
-const number = (value, decimals) => value.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+const number = (value, decimals) => (value === null ? '—' : value.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }));
 
-const data = document.getElementById('cars');
 const picker = document.querySelector('[data-picker]');
-if (data && picker) {
-    const cars = new Map(JSON.parse(data.textContent).map((car) => [String(car.id), car]));
-    const selects = [...picker.querySelectorAll('select')];
+if (picker) {
     const duel = document.querySelector('[data-stage="duel"]');
     const head = duel.querySelector('[data-duel-head]');
     const rows = duel.querySelector('[data-duel-rows]');
     const link = duel.querySelector('[data-duel-link]');
+    const sides = [];
 
     const cell = (text, unit, win) => {
         const dd = document.createElement('dd');
         if (win) dd.className = 'win';
-        dd.append(`${text} `, Object.assign(document.createElement('span'), { className: 'unit', textContent: unit }));
+        dd.append(`${text} `, Object.assign(document.createElement('span'), { className: 'unit', textContent: text === '—' ? '' : unit }));
         return dd;
     };
 
-    // Même règle que App\Compare\Comparator : meilleur selon le sens, consommation à unité égale
+    // Même règle que App\Compare\Comparator : meilleur selon le sens, consommation à unité égale, inconnu jamais classé
     const draw = (a, b) => {
         head.replaceChildren(...[a, b].map((car) => {
             const p = document.createElement('p');
@@ -128,49 +128,50 @@ if (data && picker) {
         }));
         rows.replaceChildren(...CRITERIA.map(([key, label, unit, higher]) => {
             const [ua, ub] = [unit ?? a.unit, unit ?? b.unit];
+            const known = a[key] !== null && b[key] !== null && ua === ub;
             const best = higher ? Math.max(a[key], b[key]) : Math.min(a[key], b[key]);
-            const ranked = ua === ub;
             const decimals = key === 'consumption' ? 1 : 0;
             const row = document.createElement('div');
             row.className = 'duel-row';
             row.append(
-                cell(number(a[key], decimals), ua, ranked && a[key] === best),
+                cell(number(a[key], decimals), ua, known && a[key] === best),
                 Object.assign(document.createElement('dt'), { textContent: label }),
-                cell(number(b[key], decimals), ub, ranked && b[key] === best),
+                cell(number(b[key], decimals), ub, known && b[key] === best),
             );
             return row;
         }));
         link.href = `${picker.action}?v=${a.id},${b.id}`;
     };
 
-    const show = (a, b) => {
-        if (reduced) return draw(a, b);
+    const show = () => {
+        if (!sides[0] || !sides[1]) return;
+        if (reduced) return draw(sides[0], sides[1]);
         duel.classList.add('is-swapping');
-        setTimeout(() => { draw(a, b); duel.classList.remove('is-swapping'); }, 400);
+        setTimeout(() => { draw(sides[0], sides[1]); duel.classList.remove('is-swapping'); }, 300);
     };
 
-    selects.forEach((select) => select.addEventListener('change', () => {
-        clearInterval(cycle);
-        show(cars.get(selects[0].value), cars.get(selects[1].value));
-    }));
+    const search = async (q) => {
+        if (q.length < 2) return [];
+        try {
+            const response = await fetch(`/voitures.json?q=${encodeURIComponent(q)}`);
+            return response.ok ? response.json() : [];
+        } catch {
+            return [];
+        }
+    };
 
-    // Tant que personne n'y touche, le duel change tout seul : trois affiches tirées du catalogue
-    const list = [...cars.values()];
-    const by = (key, dir) => [...list].sort((x, y) => dir * (x[key] - y[key]));
-    const duels = [
-        selects.map((s) => cars.get(s.value)),
-        [by('price', 1)[0], by('price', 1).find((c) => c.unit !== by('price', 1)[0].unit)],
-        [by('power', -1)[0], by('trunk', -1)[0]],
-    ].filter(([a, b]) => a && b && a.id !== b.id);
-    let turn = 0;
-    const cycle = reduced ? null : setInterval(() => {
-        if (document.hidden) return;
-        turn = (turn + 1) % duels.length;
-        const [a, b] = duels[turn];
-        selects[0].value = a.id;
-        selects[1].value = b.id;
-        show(a, b);
-    }, 6000);
+    picker.querySelectorAll('[data-side]').forEach((input) => {
+        const side = Number(input.dataset.side);
+        const hidden = input.parentElement.querySelector('input[type=hidden]');
+        autocomplete(input, input.parentElement.querySelector('.combo-list'), search, (car) => {
+            input.value = car.label;
+            hidden.value = car.id;
+            sides[side] = car;
+            show();
+        });
+        // La voiture de départ, pour pouvoir n'en changer qu'une
+        search(input.value).then((found) => { sides[side] ??= found.find((car) => String(car.id) === hidden.value); });
+    });
 }
 
 /* ---------- Accueil : le panneau fixe suit la colonne de texte ---------- */
