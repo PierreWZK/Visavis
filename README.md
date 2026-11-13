@@ -1,8 +1,14 @@
 # Vis-à-vis · Deux voitures face à face, sans parti pris
 
-> Jour 09 du défi **30 jours, 30 projets** · Symfony 8, Doctrine, MySQL, open data ADEME · 🟢 **En ligne : [visavis.projectp.fr](https://visavis.projectp.fr)**
+🌐 **[visavis.projectp.fr](https://visavis.projectp.fr/)** · Jour 09 du défi **[30 jours, 30 projets](https://projectp.fr/)** · [Dépôt du défi](https://github.com/PierreWZK/30DaysProjects)
 
-![Page d'accueil de Vis-à-vis](docs/preview.png)
+Stack : Symfony 8, Doctrine, MySQL, open data ADEME.
+
+[![Page d'accueil de Vis-à-vis](docs/preview-accueil.png)](https://visavis.projectp.fr/)
+
+<p align="center">
+  <img src="docs/preview-mobile.png" alt="Vis-à-vis sur téléphone" width="260">
+</p>
 
 Un comparateur de voitures neuves : on choisit deux à quatre versions et **Vis-à-vis** les aligne caractéristique par caractéristique (prix, puissance, consommation, CO₂, poids), en mettant en valeur le meilleur de chaque ligne, sans note globale. Deux jeux du jour complètent le comparateur.
 
@@ -71,3 +77,14 @@ En ligne sur Coolify : **https://visavis.projectp.fr**. Chaque push sur `main` r
 ## Stack
 
 Symfony 8, Doctrine, Twig, EasyAdmin, MySQL 8.4, AssetMapper · open data ADEME (Licence Ouverte) · police Work Sans.
+
+---
+
+## Le défi 30 jours, 30 projets
+
+Un projet complet par jour pendant 30 jours, chacun en ligne sur son propre sous-domaine.
+
+- 🗂️ **Tous les projets** : [projectp.fr](https://projectp.fr/)
+- 💻 **Le dépôt du défi** : [github.com/PierreWZK/30DaysProjects](https://github.com/PierreWZK/30DaysProjects)
+- ⬅️ **Jour précédent** : [Détour, carburant et détours](https://detour.projectp.fr/)
+- ➡️ **Jour suivant** : [Tirage, pot odds et outs](https://tirage.projectp.fr/)
